@@ -128,7 +128,7 @@ jobs:
       - name: 📥 Checkout Code (to access configs/)
         uses: actions/checkout@v6
         with:
-          ref: devices
+          ref: test-ace5-ace3-wifi-devices
           sparse-checkout: |
             configs/
           sparse-checkout-cone-mode: false
