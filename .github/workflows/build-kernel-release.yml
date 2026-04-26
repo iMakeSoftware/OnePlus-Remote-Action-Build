@@ -454,7 +454,6 @@ jobs:
         with:
           repository: WildKernels/OnePlus_KernelSU_SUSFS
           ref: main
-          path: upstream
           sparse-checkout: |
             .github/actions/
             manifests/
@@ -462,7 +461,7 @@ jobs:
 
       - name: 🧹 Emergency Disk Cleanup
         if: ${{ matrix.disk_cleanup }}
-        uses: ./upstream/.github/actions/disk-cleanup
+        uses: ./.github/actions/disk-cleanup
 
       - name: Install Minimal Dependencies
         run: |
@@ -527,7 +526,7 @@ jobs:
 
       - name: 🔨 Build Kernel
         id: build
-        uses: ./upstream/.github/actions/build-kernel
+        uses: ./.github/actions/build-kernel
         with:
           op_config_json: ${{ steps.prepare_config.outputs.config_json }}
           ksu_type: ${{ matrix.ksu_type }}
