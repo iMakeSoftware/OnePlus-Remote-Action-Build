@@ -449,19 +449,9 @@ jobs:
       ksun_ver: ${{ steps.build-stat.outputs.ksu_version }}
       ksu_ver: ${{ steps.build-stat.outputs.ksu_version }}
     steps:
-      - name: 📥 Checkout upstream (actions + manifests)
-        uses: actions/checkout@v6
-        with:
-          repository: WildKernels/OnePlus_KernelSU_SUSFS
-          ref: main
-          sparse-checkout: |
-            .github/actions/
-            manifests/
-          sparse-checkout-cone-mode: false
-
       - name: 🧹 Emergency Disk Cleanup
         if: ${{ matrix.disk_cleanup }}
-        uses: ./.github/actions/disk-cleanup
+        uses: WildKernels/OnePlus_KernelSU_SUSFS/.github/actions/disk-cleanup@l3_refactor
 
       - name: Install Minimal Dependencies
         run: |
@@ -524,9 +514,18 @@ jobs:
         run: |
           echo "config_json=$(jq -nc --argjson m '${{ toJSON(matrix) }}' '$m | del(.ksu_type, .ksu_hash, .ksu_resolved_hash, .susfs_resolved_hash)')" >> "$GITHUB_OUTPUT"
 
+      - name: 📥 Checkout Code (to access manifests/)
+        uses: actions/checkout@v6
+        with:
+          repository: WildKernels/OnePlus_KernelSU_SUSFS
+          ref: main
+          sparse-checkout: |
+            manifests/
+          sparse-checkout-cone-mode: false
+
       - name: 🔨 Build Kernel
         id: build
-        uses: ./.github/actions/build-kernel
+        uses: WildKernels/OnePlus_KernelSU_SUSFS/.github/actions/build-kernel@l3_refactor
         with:
           op_config_json: ${{ steps.prepare_config.outputs.config_json }}
           ksu_type: ${{ matrix.ksu_type }}
