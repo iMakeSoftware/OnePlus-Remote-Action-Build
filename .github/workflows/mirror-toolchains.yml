@@ -28,13 +28,13 @@ jobs:
           # Check if the release already exists
           TARGET_REPO="${{ github.repository }}"
           TAG_NAME="toolchain-cache"
-
+          
           if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
             echo "Tag not found. Creating backdated tag and release..."
-
+            
             GIT_COMMITTER_DATE="2015-01-01T12:00:00" git tag -a "$TAG_NAME" -m "Internal Toolchains Cache"
             git push origin "$TAG_NAME"
-
+            
             echo "Release not found. Creating..."
             gh release create "$TAG_NAME" --title "Toolchains Mirror Cache" --notes "Deduplicated Toolchains for Kernel Build" --repo "$TARGET_REPO"
           else
@@ -96,7 +96,8 @@ jobs:
               "clang/host/linux-x86": "clang",
               "prebuilts/rust": "rust",
               "prebuilts/clang-tools": "clang-tools",
-              "prebuilts/build-tools": "build-tools"
+              "prebuilts/build-tools": "build-tools",
+              "AnyKernel3": "AnyKernel3"
           }
           
           print(f"Processing {len(configs)} configurations...")
@@ -137,14 +138,20 @@ jobs:
                       if type_label:
                         remote_name = project.get('remote', def_remote)
                         rev = project.get('revision', def_rev)
-                        base_url = remotes.get(remote_name, "")
+                        base_url = remotes.get(remote_name, "").rstrip('/')
                         cache_filename = f"{type_label}-{rev}.tar.gz"
                         
-                        if cache_filename not in unique_toolchains and ("git.codelinaro.org" in base_url or "googlesource.com" in base_url):
+                        if cache_filename not in unique_toolchains:
                             if "googlesource.com" in base_url:
                                 dl_url = f"{base_url}/{name}/+archive/{rev}.tar.gz"
-                            else:
+                            elif "github.com" in base_url:
+                                dl_url = f"{base_url}/{name}/archive/{rev}.tar.gz"
+                            elif "git.codelinaro.org" in base_url or "gitlab.com" in base_url:
                                 dl_url = f"{base_url}/{name}/-/archive/{rev}.tar.gz"
+                            else:
+                                error_msg = f"❌ [FATAL] Unknown toolchain provider for: {base_url}"
+                                print(f"::error::{error_msg}")
+                                raise ValueError(error_msg)
                             unique_toolchains[cache_filename] = {"rev": rev, "url": dl_url, "name": name, "type_label": type_label, "cache_file": cache_filename}
                             print(f"🆕 [{op_model}][{op_os_version}] -> New {type_label} found: {rev}")
                         else:
@@ -172,26 +179,26 @@ jobs:
           REV="${{ matrix.rev }}"
           FILENAME="${{ matrix.cache_file }}"
           BASE_URL="https://github.com/${TARGET_REPO}/releases/download/toolchain-cache"
-
+          
           echo "🔍 Checking if $FILENAME exists in mirror..."
-
+          
           STATUS=$(curl -IsL -o /dev/null -w "%{http_code}" "$BASE_URL/$FILENAME")
           PART_STATUS=$(curl -IsL -o /dev/null -w "%{http_code}" "$BASE_URL/${FILENAME}.partaa")
-
+          
           if [ "$STATUS" -eq 200 ] || [ "$PART_STATUS" -eq 200 ]; then
             echo "✅ ${{ matrix.type_label }} revision ${{ matrix.rev }} already cached."
           else
             echo "📥 Not found. Downloading ${{ matrix.type_label }} from source..."
-
+            
             aria2c -x16 -s16 -k1M -j5 --file-allocation=none --console-log-level=error --summary-interval=0 --retry-wait=5 --max-tries=10 -o "$FILENAME" "${{ matrix.url }}"
-
+            
             FILE_SIZE=$(stat -c%s "$FILENAME")
             MAX_SIZE=2000000000 # ~1.86GB
-
+            
             if [ "$FILE_SIZE" -gt "$MAX_SIZE" ]; then
               echo "⚠️ File > 2GB. Splitting..."
               split -b 1500M -a 2 "$FILENAME" "${FILENAME}.part"
-
+              
               for part in "${FILENAME}".part*; do
                 echo "📤 Uploading $part..."
                 gh release upload "toolchain-cache" "$part" --clobber --repo "$TARGET_REPO"
