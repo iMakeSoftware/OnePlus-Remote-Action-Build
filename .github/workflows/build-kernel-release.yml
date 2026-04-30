@@ -118,7 +118,7 @@ on:
         type: boolean
         default: false
       debug:
-        description: 'Enable dumping debug related artifacts'
+        description: 'Enable debug mode: dumping debug related artifacts and show some debug logs'
         required: false
         type: boolean
         default: false
@@ -451,34 +451,7 @@ jobs:
     steps:
       - name: 🧹 Emergency Disk Cleanup
         if: ${{ matrix.disk_cleanup }}
-        run: |
-          echo "::group::Disk Usage Before Cleanup"
-          df -h
-          echo "::endgroup::"
-          
-          echo "::group::Removing Unnecessary Software"
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo apt-get clean
-          if command -v docker >/dev/null 2>&1; then
-            docker rmi $(docker images -q) 2>/dev/null || true
-          fi
-          echo "::endgroup::"
-          
-          echo "::group::Disk Usage After Cleanup"
-          df -h
-          AVAIL=$(df -h / | awk 'NR==2 {print $4}')
-          echo "✅ Available space: $AVAIL"
-          echo "::endgroup::"
-
-      - name: Download Apache Arrow's util_free_space.sh
-        if: ${{ matrix.disk_cleanup }}
-        run: |
-          curl -L -o util_free_space.sh https://raw.githubusercontent.com/apache/arrow/main/ci/scripts/util_free_space.sh
-          chmod +x util_free_space.sh
-          ./util_free_space.sh
+        uses: WildKernels/OnePlus_KernelSU_SUSFS/.github/actions/disk-cleanup@main
 
       - name: Install Minimal Dependencies
         run: |
@@ -493,24 +466,33 @@ jobs:
           echo "✅ Dependencies installed"
           echo "::endgroup::"
 
-      - name: 📦 Disk usage (pre-build)
+      - name: Install ccache with ECS by cctv18
         run: |
-          echo "::group::Disk usage pre-build"
-          df -h /
-          du -sh "$GITHUB_WORKSPACE" 2>/dev/null || true
-          sudo rm -rf /tmp/* || true
+          # Install ccache with ECS by cctv18
+          set -euo pipefail
+          echo "::group::Install ccache with ECS"
+          curl -LfsS --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 30 --tcp-fastopen -H "User-Agent: Mozilla/5.0" "https://github.com/WildKernels/kernel_patches/raw/refs/heads/main/ccache/ccache-x86-64" -o ccache
+          sudo cp -f ./ccache /usr/bin/ccache
+          sudo chmod +x /usr/bin/ccache
+          rm -f ./ccache
+
+          echo "[DEBUG] Ccache version : $(ccache --version)"
           echo "::endgroup::"
 
-      - name: ♻️ Configure ccache (bounded)
+      - name: ♻️ Configure ccache & LTO cache (bounded)
         run: |
           echo "::group::Configure ccache environment"
           set -euo pipefail
           if command -v ccache >/dev/null 2>&1; then
             CACHE_DIR="${{ github.workspace }}/.ccache"
+            LDCACHE_DIR="${{ github.workspace }}/.ld_cache"
+            CCACHE_LOG="${{ github.workspace }}/ccache.log"
             mkdir -p "$CACHE_DIR"
-            
+            mkdir -p "$LDCACHE_DIR"
+
             SETTINGS=(
               "CCACHE_DIR=$CACHE_DIR"
+              "LDCACHE_DIR=$LDCACHE_DIR"
               "CCACHE_MAXSIZE=0"
               "CCACHE_COMPILERCHECK=content"
               "CCACHE_BASEDIR=${GITHUB_WORKSPACE}"
@@ -521,6 +503,7 @@ jobs:
               "CCACHE_DIRECT=true"
               "CCACHE_FILE_CLONE=true"
               "CCACHE_INODE_CACHE=true"
+              "CCACHE_IS_KERNEL_COMPILING=true"
               "CCACHE_UMASK=002"
               "CCACHE_SLOPPINESS=file_macro,time_macros,include_file_mtime,include_file_ctime,pch_defines,system_headers,locale"
             )
@@ -529,7 +512,12 @@ jobs:
               export "$setting"
               echo "$setting" >> "$GITHUB_ENV"
             done
-            
+
+            if [ "${{ inputs.debug }}" == "true" ]; then
+              export "CCACHE_LOGFILE=$CCACHE_LOG"
+              echo "CCACHE_LOGFILE=$CCACHE_LOG" >> "$GITHUB_ENV"
+            fi
+
             if ccache --help 2>&1 | grep -q 'depend_mode'; then
               export CCACHE_DEPEND=true
               echo "CCACHE_DEPEND=true" >> "$GITHUB_ENV"
@@ -556,12 +544,11 @@ jobs:
           ref: main
           sparse-checkout: |
             manifests/
-            .github/actions/
           sparse-checkout-cone-mode: false
 
       - name: 🔨 Build Kernel
         id: build
-        uses: ./.github/actions/build-kernel
+        uses: WildKernels/OnePlus_KernelSU_SUSFS/.github/actions/build-kernel@main
         with:
           op_config_json: ${{ steps.prepare_config.outputs.config_json }}
           ksu_type: ${{ matrix.ksu_type }}
