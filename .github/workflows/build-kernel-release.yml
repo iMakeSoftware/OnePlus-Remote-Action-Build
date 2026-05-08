@@ -106,7 +106,7 @@ on:
         description: 'Enter KernelSU build json'
         required: true
         type: string
-        default: '[{"type":"ksun","hash":"dev"}]'
+        default: '[{"type":"ksun","hash":"551ad80473f60e052917aec08abf5323b6ab2f7c"}]'
       optimize_level:
         description: "Compiler optimization level"
         required: true
@@ -130,11 +130,11 @@ on:
       build_timestamp:
         description: 'Custom kernel build timestamp for uname -a (e.g. "Tue Feb 10 10:01:02 UTC 2026"). Leave empty for current time.'
         type: string
-        default: ''
+        default: 'Fri Dec 5 02:15:49 UTC 2025'
       susfs_branch_or_commit:
         description: 'Enter SusFS Branch or commit hash for selected device kernel'
         type: string
-        default: ''
+        default: '5fbf04e8c6c08b8ca759e0ac81bed7d2dc96f7f8'
 
 jobs:
   set-op-model:
@@ -159,7 +159,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_HTTP_TIMEOUT: 6000
+          GH_HTTP_TIMEOUT: 600
         run: |
           set -euo pipefail
           echo "::group::Matrix generation"
@@ -352,7 +352,7 @@ jobs:
           echo "::endgroup::"
 
       - name: Upload build matrix
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: build-matrix
           path: matrix.json
@@ -538,7 +538,7 @@ jobs:
           echo "config_json=$(jq -nc --argjson m '${{ toJSON(matrix) }}' '$m | del(.ksu_type, .ksu_hash, .ksu_resolved_hash, .susfs_resolved_hash)')" >> "$GITHUB_OUTPUT"
 
       - name: 📥 Checkout Code (to access manifests/)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: WildKernels/OnePlus_KernelSU_SUSFS
           ref: main
