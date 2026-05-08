@@ -159,7 +159,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_HTTP_TIMEOUT: 600
+          GH_HTTP_TIMEOUT: 6000
         run: |
           set -euo pipefail
           echo "::group::Matrix generation"
@@ -242,8 +242,8 @@ jobs:
             }
           }'
           
-          MAX_RETRIES=3
-          RETRY_COUNT=0
+          MAX_RETRIES=7
+          RETRY_COUNT=3
           RETRY_DELAY=5
           
           echo "Resolving $ksu_type hash ($ksu_ref)..."
@@ -306,8 +306,8 @@ jobs:
             # Single GraphQL query: fetch commit SHA
             GL_QUERY="{ project(fullPath: \"${GITLAB_PROJECT_PATH}\") { repository { ch: commit(ref: \"${susfs_ref}\") { sha } } } }"
 
-            MAX_RETRIES=3
-            RETRY_COUNT=0
+            MAX_RETRIES=9
+            RETRY_COUNT=3
             RETRY_DELAY=5
             susfs_resolved=""
             
