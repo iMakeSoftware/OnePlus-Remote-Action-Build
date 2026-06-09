@@ -26,7 +26,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Check if the release already exists
-          TARGET_REPO="WildKernels/OnePlus_KernelSU_SUSFS"
+          TARGET_REPO="${{ github.repository }}"
           TAG_NAME="toolchain-cache"
           
           if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
@@ -175,7 +175,7 @@ jobs:
     steps:
       - name: Sync & Upload
         run: |
-          TARGET_REPO="iMakesSoftware/OnePlus-Remote-Action-Build"
+          TARGET_REPO="${{ github.repository }}"
           REV="${{ matrix.rev }}"
           FILENAME="${{ matrix.cache_file }}"
           BASE_URL="https://github.com/${TARGET_REPO}/releases/download/toolchain-cache"
