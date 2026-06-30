@@ -1,7 +1,7 @@
 # OnePlus-Remote-Action-Build
 Build OnePlus latest kernel for your device with KSUN/WildKSU/KSU + SusFS anytime without knowing or self-patching. Just clone, edit config as per requirement and build.
 # Devices list
-| Devices | OOS14 | OOS15 | OOS16 |
+| Devices | A14 | A15 | A16 |
 | :--- | :---: | :---: | :---: |
 | OP15T | | |✅|
 | OP15r | | |✅|
