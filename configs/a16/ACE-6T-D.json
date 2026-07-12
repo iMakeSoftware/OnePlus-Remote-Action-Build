@@ -1,5 +1,5 @@
 {
-  "model": "OP-ACE-6T",
+  "model": "OP-ACE-6T-D",
   "soc": "canoe",
   "branch": "wild/sm8845",
   "manifest": "oneplus_ace_6t_w.xml",
