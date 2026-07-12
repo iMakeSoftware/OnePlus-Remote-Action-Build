@@ -1,4 +1,4 @@
-name: Build OnePlus Kernel
+name: Build OnePlus Kernel (my repo)
 
 permissions:
   contents: write
