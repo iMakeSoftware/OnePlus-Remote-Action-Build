@@ -157,12 +157,12 @@ on:
           - OP-PAD-PRO_a14
           - OP-PAD-MT6983_a14
           - OP-PAD-GO_a14
-        default: OP11_a16
+        default: OP-ACE-6T_a16
       ksu_options:
         description: 'Enter KernelSU build json'
         required: true
         type: string
-        default: '[{"type":"ksun","hash":"dev"}]'
+        default: '[{"type":"ksun","hash":"d1754d8cc12f05e18406171cbd1bc32cc2930d1b"}]'
       optimize_level:
         description: "Compiler optimization level"
         required: true
@@ -186,11 +186,11 @@ on:
       build_timestamp:
         description: 'Custom kernel build timestamp for uname -a (e.g. "Tue Feb 10 10:01:02 UTC 2026"). Leave empty for current time.'
         type: string
-        default: ''
+        default: 'Fri Dec 5 02:15:49 UTC 2025'
       susfs_branch_or_commit:
         description: 'Enter SusFS Branch or commit hash for selected device kernel'
         type: string
-        default: ''
+        default: '72bdce7ce2de8189efb227c6cefbc578a9efd479'
 
 jobs:
   set-op-model:
