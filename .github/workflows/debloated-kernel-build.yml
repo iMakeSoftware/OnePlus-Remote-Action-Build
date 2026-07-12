@@ -32,6 +32,7 @@ on:
           - OP-TURBO-6V_a16
           - OP-TURBO-6_a16
           - OP-ACE-6T_a16
+          - OP-ACE-6T-D_a16
           - OP-ACE-6_a16
           - OP-ACE-6-ULTRA_a16
           - OP-ACE-5-PRO_a16
@@ -157,7 +158,7 @@ on:
           - OP-PAD-PRO_a14
           - OP-PAD-MT6983_a14
           - OP-PAD-GO_a14
-        default: OP-ACE-6T_a16
+        default: OP-ACE-6T-D_a16
       ksu_options:
         description: 'Enter KernelSU build json'
         required: true
