@@ -163,7 +163,7 @@ on:
         description: 'Enter KernelSU build json'
         required: true
         type: string
-        default: '[{"type":"ksun","hash":"d1754d8cc12f05e18406171cbd1bc32cc2930d1b"}]'
+        default: '[{"type":"ksun","hash":"d6a42fd9285c11b8e8e67bfe72a5050528006c00"}]'
       optimize_level:
         description: "Compiler optimization level"
         required: true
@@ -191,7 +191,7 @@ on:
       susfs_branch_or_commit:
         description: 'Enter SusFS Branch or commit hash for selected device kernel'
         type: string
-        default: '72bdce7ce2de8189efb227c6cefbc578a9efd479'
+        default: 'd9a486dc7197800149c31fe35a77997ea0ddaa83'
 
 jobs:
   set-op-model:
